@@ -47,17 +47,29 @@ fileending2fun = {
         "jpeg" : manipulate_image,
         "png" : manipulate_image
 }
+uppercase_keys = {k.upper() : v for k,v in fileending2fun.items()}
+fileending2fun.update(uppercase_keys)
+
+supp_endings_msg = "Supported fileendings are currently :"+", ".join(fileending2fun.keys())
+
 
 def manipulate(filename_in):
 
     m = re.match(r"([^.]+)\.([^.]+)", filename_in)
     
     if not m:
-        return (False, filename_in + " not a supported file type")
+        return (False, filename_in + " ? failed to detect file type. "+supp_endings_msg)
 
-    filename_out = m.groups()[0] + "_x." + m.groups()[1]
+    name, ftype = m.groups()
 
-    mani = fileending2fun[m.groups()[1]]
+    filename_out = name + "_x." + ftype
+
+    print(ftype)
+    print(ftype not in fileending2fun)
+    print(fileending2fun.keys())
+    if ftype not in fileending2fun:
+        return (False, filename_in + f" has unsupported file ending: {ftype}, "+supp_endings_msg)
+    mani = fileending2fun[ftype]
 
     mani(filename_in, filename_out)
 

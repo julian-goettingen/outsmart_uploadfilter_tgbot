@@ -6,6 +6,7 @@ import os
 import telegram
 from telegram.ext import MessageHandler, Updater, CommandHandler
 import json
+from collections import defaultdict
 
 
 def pprint(name, obj):
@@ -32,23 +33,60 @@ def hello(update, context):
 
     context.bot.send_message(chat_id=update.effective_chat.id, text=msg)
 
+def find_file_id_in_dict_rec(d, res):
+
+    for k,v in d.items():
+        assert(isinstance(k,str))
+        if k=="file_id":
+            assert(isinstance(v,str))
+            res.append(v)
+        elif isinstance(v,dict):
+            find_file_id_in_dict_rec(v, res)
+        elif isinstance(v,list):
+            for item in v:
+                find_file_id_in_dict_rec(item, res)
+
+    return res
+
+def find_file_id_in_dict(d):
+
+    return find_file_id_in_dict_rec(d,res=[])
+    
+
+# returns a list of file_id in the update, quite possibly empty
+def get_file_id(update):
+
+    su = str(update)
+    su = su.replace("'",'"')
+    su = su.replace("False", "false")
+    su = su.replace("True", "true")
+    su = su.replace("None", "null")
+    jsonu = json.loads(su)
+    
+    return find_file_id_in_dict(jsonu)
+ 
+
 
 
 def handle_msg(update, context):
- 
+
 
     try:
+        pprint("context", context)
+        pprint("update", update)
+        pprint("chat_data", context.chat_data)
+
         res_set = False
         dlf_set = False
         text = update["message"]["text"]
 
-        try:
-            fid = update["message"]["document"]["file_id"]
-        except:
+        
+        file_ids = get_file_id(update)
+        if not file_ids:
             context.bot.send_message(chat_id=update.effective_chat.id, text="I received your message, but it doesnt seem to be a file")
             return
+        fid = file_ids[0] 
 
-        fid = update["message"]["document"]["file_id"]
         received_file = context.bot.getFile(fid)
         dlf = received_file.download()
         dlf_set = True
