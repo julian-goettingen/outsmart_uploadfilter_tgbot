@@ -15,9 +15,18 @@ def _darken_by(im, by=0.95):
 
     return im.astype(float)*0.95
 
+def _lower_pitch(audioframe, t):
+
+    print("#############################3333")
+    print(type(t))
+    print(t)
+    print(type(audioframe))
+    print(str(audioframe)[:100])
+
+    return audioframe
+
 
 def manipulate_mp4(filename_in, filename_out):
-
 
 
     clip = mpe.VideoFileClip(filename_in)
@@ -28,7 +37,16 @@ def manipulate_mp4(filename_in, filename_out):
     
     darken = functools.partial(_darken_by,by=random.choice([0.93, 0.95, 1.05, 1.03]))
 
+    orig_audio = clip.audio
+
+
+    #changed_audio = orig_audio.fl(_lower_pitch)
+    changed_audio = orig_audio # fl doesnt seem to do anything
+
     res = clip.fl_image( darken )
+
+    res.set_audio(changed_audio)
+    res = res.volumex(random.choice([0.9,1.1,1.2]))
     res.write_videofile(filename_out)
 
 
@@ -64,9 +82,11 @@ def manipulate(filename_in):
 
     filename_out = name + "_x." + ftype
 
-    print(ftype)
-    print(ftype not in fileending2fun)
-    print(fileending2fun.keys())
+    print("<<<inout")
+    print(filename_in)
+    print(filename_out)
+    print("inout>>>")
+
     if ftype not in fileending2fun:
         return (False, filename_in + f" has unsupported file ending: {ftype}, "+supp_endings_msg)
     mani = fileending2fun[ftype]
